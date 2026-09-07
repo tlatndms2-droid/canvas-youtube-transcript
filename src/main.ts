@@ -1,5 +1,6 @@
 import { Menu, Notice, Plugin } from "obsidian";
-import { applyTranscriptClass, CanvasNodeHandle, createTranscriptNode, getActiveCanvasContext, selectedNodeHasSingleYouTubeUrl, videoFromNode } from "./canvas-adapter";
+import { applyTranscriptClass, CanvasNodeHandle, getActiveCanvasContext, selectedNodeHasSingleYouTubeUrl, videoFromNode } from "./canvas-adapter";
+import { TranscriptPlacementController } from "./transcript-placement-controller";
 import { renderTranscriptMarkdown } from "./transcript-markdown";
 import { CaptionTrackModal } from "./track-modal";
 import { UserFacingError } from "./types";
@@ -10,6 +11,7 @@ const COMMAND_ID = "extract-youtube-transcript-from-selected-canvas-card";
 export default class CanvasYouTubeTranscriptPlugin extends Plugin {
   private readonly captionProvider = new YouTubeCaptionProvider();
   private readonly inFlightNodeIds = new Set<string>();
+  private readonly placementController = new TranscriptPlacementController();
 
   async onload(): Promise<void> {
     this.addCommand({
@@ -41,6 +43,10 @@ export default class CanvasYouTubeTranscriptPlugin extends Plugin {
     applyTranscriptClass(this.app);
   }
 
+  onunload(): void {
+    this.placementController.cancel();
+  }
+
   private async extractFromNode(node: CanvasNodeHandle): Promise<void> {
     if (this.inFlightNodeIds.has(node.id)) {
       new Notice("이미 자막을 가져오는 중입니다.");
@@ -56,8 +62,7 @@ export default class CanvasYouTubeTranscriptPlugin extends Plugin {
       if (!track) return;
       const cues = await this.captionProvider.getTranscript(video.id, track);
       const content = renderTranscriptMarkdown(video, data.title, track, cues);
-      createTranscriptNode(context, content);
-      new Notice("Canvas에 자막 카드 1개를 만들었습니다.");
+      this.placementController.start(context, content);
     } catch (error) {
       this.reportError(error);
     } finally {

@@ -6,3 +6,26 @@
 .canvas-node.cyt-transcript-node .markdown-preview-view {
   padding-right: 0.35rem;
 }
+
+.cyt-transcript-placement {
+  position: fixed;
+  z-index: var(--layer-popover);
+  pointer-events: none;
+  transform-origin: top left;
+  box-sizing: border-box;
+  border: 2px dashed var(--interactive-accent);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--background-primary) 45%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 30%, transparent);
+}
+
+.cyt-transcript-placement__label {
+  width: max-content;
+  max-width: 90%;
+  margin: 0.75rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-s);
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+  font-size: var(--font-ui-small);
+}

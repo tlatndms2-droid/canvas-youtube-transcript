@@ -1,5 +1,5 @@
 import { App } from "obsidian";
-import { CanvasRect, findTranscriptPlacement } from "./placement";
+import { CanvasRect, TRANSCRIPT_SIZE } from "./placement";
 import { UserFacingError } from "./types";
 import { requireSingleYouTubeVideo } from "./youtube-url";
 
@@ -17,11 +17,13 @@ interface CanvasHandle {
   selection?: Set<CanvasNodeHandle | string>;
   createTextNode?: (options: { pos: { x: number; y: number }; size: { width: number; height: number }; text: string; focus: boolean }) => CanvasNodeHandle;
   requestSave?: () => void;
+  posFromClient?: (point: { x: number; y: number }) => { x: number; y: number };
 }
 
 export interface CanvasContext {
   canvas: CanvasHandle;
   node: CanvasNodeHandle;
+  containerEl: HTMLElement;
 }
 
 function enableTranscriptScrolling(node: CanvasNodeHandle): void {
@@ -56,14 +58,14 @@ function selectedNodes(canvas: CanvasHandle): CanvasNodeHandle[] {
 
 export function getActiveCanvasContext(app: App, node?: CanvasNodeHandle): CanvasContext {
   const view = app.workspace.getActiveViewOfType as unknown as (type: unknown) => unknown;
-  const activeView = view.call(app.workspace, Object) as { getViewType?: () => string; canvas?: CanvasHandle } | null;
+  const activeView = view.call(app.workspace, Object) as { getViewType?: () => string; canvas?: CanvasHandle; containerEl?: HTMLElement } | null;
   const canvas = activeView?.getViewType?.() === "canvas" ? activeView.canvas : undefined;
-  if (!canvas) throw new UserFacingError("canvas-not-found", "현재 열려 있는 Canvas를 찾을 수 없습니다.");
+  if (!canvas || !activeView?.containerEl) throw new UserFacingError("canvas-not-found", "현재 열려 있는 Canvas를 찾을 수 없습니다.");
   const selected = node ? [node] : selectedNodes(canvas);
   if (selected.length !== 1) {
     throw new UserFacingError("url-not-found", "YouTube 카드 하나를 선택한 뒤 다시 실행해 주세요.");
   }
-  return { canvas, node: selected[0] };
+  return { canvas, node: selected[0], containerEl: activeView.containerEl };
 }
 
 export function selectedNodeHasSingleYouTubeUrl(node: CanvasNodeHandle): boolean {
@@ -81,14 +83,13 @@ export function videoFromNode(node: CanvasNodeHandle) {
   return requireSingleYouTubeVideo(candidates);
 }
 
-export function createTranscriptNode(context: CanvasContext, content: string): CanvasNodeHandle {
-  const { canvas, node } = context;
+export function createTranscriptNode(context: CanvasContext, content: string, position: { x: number; y: number }): CanvasNodeHandle {
+  const { canvas } = context;
   if (!canvas.createTextNode) {
     throw new UserFacingError("canvas-node-create-failed", "현재 Obsidian에서 자막 카드를 만들 수 없습니다.");
   }
-  const placement = findTranscriptPlacement(node, nodesOf(canvas).filter((candidate) => candidate.id !== node.id));
   try {
-    const created = canvas.createTextNode({ pos: { x: placement.x, y: placement.y }, size: { width: placement.width, height: placement.height }, text: content, focus: false });
+    const created = canvas.createTextNode({ pos: position, size: TRANSCRIPT_SIZE, text: content, focus: false });
     const data = created.getData?.() ?? {};
     created.setData?.({ ...data, cytTranscript: true });
     created.nodeEl?.addClass("cyt-transcript-node");

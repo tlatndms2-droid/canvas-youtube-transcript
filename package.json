@@ -1,6 +1,6 @@
 {
   "name": "canvas-youtube-transcript",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Extract a YouTube transcript into a text card in the current Obsidian Canvas.",
   "main": "main.js",
   "scripts": {

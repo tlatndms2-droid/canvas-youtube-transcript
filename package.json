@@ -1,0 +1,29 @@
+{
+  "name": "canvas-youtube-transcript",
+  "version": "0.1.0",
+  "description": "Extract a YouTube transcript into a text card in the current Obsidian Canvas.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "obsidian",
+    "canvas",
+    "youtube",
+    "transcript"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.28.2",
+    "obsidian": "latest",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0"
+  },
+  "dependencies": {
+    "bgutils-js": "3.2.0"
+  }
+}

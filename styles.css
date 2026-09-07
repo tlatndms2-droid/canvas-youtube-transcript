@@ -1,0 +1,8 @@
+.canvas-node.cyt-transcript-node .canvas-node-content,
+.canvas-node.cyt-transcript-node .canvas-node-content > .markdown-preview-view {
+  overflow: auto;
+}
+
+.canvas-node.cyt-transcript-node .markdown-preview-view {
+  padding-right: 0.35rem;
+}
